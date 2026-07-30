@@ -1,0 +1,71 @@
+# ============================================================
+#  GGUF ORCHESTRATOR — CONFIG (example)
+#  Copy to config.yaml and edit the paths for your machine.
+#  The PostgreSQL password lives in .env, NOT in this file.
+#  Tip: use forward slashes in Windows paths: D:/models/model.gguf
+# ============================================================
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+  reload: false                  # true during development
+
+database:
+  host: "localhost"
+  port: 5433                     # change if your PostgreSQL uses a different port
+  name: "gguf_orchestrator"
+  user: "postgres"
+  # password comes from .env → POSTGRES_PASSWORD
+
+models_dir: "E:/models"
+
+models:
+  # ⚡ Router — always loaded, classifies every request in ~100ms
+  router:
+    path: "E:/models/llm.gguf"
+    n_ctx: 2048
+    n_gpu_layers: 20
+    temperature: 0.1             # low temp = consistent classification
+
+  # 🧠 Brain — reasoning, explanation, architecture questions
+  brain:
+    path: "E:/models/llm.gguf"
+    n_ctx: 4096
+    n_gpu_layers: 16
+    temperature: 0.7
+
+  # ⚙️ Code — generation, refactoring, diff production
+  code:
+    path: "E:/models/llm.gguf"
+    n_ctx: 32768
+    n_gpu_layers: 20
+    temperature: 0.2             # low temp = precise code output
+
+  # 📐 Embeddings — used by RAG to index and search your codebase
+  embedding:
+    model_name: "nomic-ai/nomic-embed-text-v1"
+    dimension: 768
+
+rag:
+  chunk_size: 400
+  chunk_overlap: 80
+  top_k: 8
+  max_inject_tokens: 4000
+  include_extensions: [.py, .js, .ts, .tsx, .jsx, .html, .css, .json, .yaml, .yml, .md, .txt, .sh, .sql, .rs, .go, .cpp, .c, .h]
+  exclude_dirs: [node_modules, .git, __pycache__, .venv, venv, dist, build, .next, .nuxt, vendor, target, out, .cache, coverage, .pytest_cache, .mypy_cache]
+  exclude_files: [package-lock.json, yarn.lock, poetry.lock, .env, .env.local]
+
+projects:
+  storage_dir: "./projects"
+
+vram:
+  strategy: "hot_swap"           # hot_swap = unload brain/code between uses
+  router_always_loaded: true
+
+git:
+  enabled: true
+  prioritize_changed_files: true
+
+logging:
+  level: "INFO"
+  file: "./orchestrator.log"
